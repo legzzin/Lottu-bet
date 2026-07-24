@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mines - Lottu Bet</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    .game-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .game-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+      padding: 20px;
+      border-radius: 12px;
+      border: 2px solid #00ff88;
+    }
+
+    .game-title h1 {
+      color: #00ff88;
+      font-size: 2rem;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .game-stats {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-label {
+      color: #999;
+      font-size: 0.9rem;
+      margin-bottom: 5px;
+    }
+
+    .stat-value {
+      color: #00ff88;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    .game-content {
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 20px;
+    }
+
+    .game-board {
+      background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
+      border: 3px solid #00ff88;
+      border-radius: 16px;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .mines-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin: 30px 0;
+    }
+
+    .mine-cell {
+      aspect-ratio: 1;
+      background: #1a1a1a;
+      border: 2px solid #00ff88;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      user-select: none;
+    }
+
+    .mine-cell:hover:not(.revealed):not(.disabled) {
+      background: #2a2a2a;
+      box-shadow: 0 0 20px rgba(0, 255, 157, 0.3);
+      transform: scale(1.05);
+    }
+
+    .mine-cell.revealed {
+      cursor: default;
+    }
+
+    .mine-cell.safe {
+      background: #0a3d0a;
+      border-color: #00ff88;
+      color: #00ff88;
+    }
+
+    .mine-cell.mine {
+      background: #3d0a0a;
+      border-color: #ff3333;
+      color: #ff3333;
+    }
+
+    .mine-cell.disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .game-controls {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+      justify-content: center;
+    }
+
+    .btn-control {
+      padding: 12px 24px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #ddd;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-control:hover {
+      border-color: #00ff88;
+      color: #00ff88;
+    }
+
+    .btn-control.primary {
+      background: linear-gradient(45deg, #00ff9d, #ff00cc);
+      color: #000;
+      border: none;
+    }
+
+    .btn-control.primary:hover {
+      transform: scale(1.05);
+    }
+
+    .btn-control:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .result-message {
+      font-size: 1.3rem;
+      font-weight: bold;
+      margin: 20px 0;
+      min-height: 30px;
+      color: #00ff88;
+    }
+
+    .result-message.win {
+      color: #00ff88;
+    }
+
+    .result-message.lose {
+      color: #ff3333;
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .section {
+      background: #161616;
+      border: 2px solid #222;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .section h3 {
+      color: #00ff88;
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-size: 1.1rem;
+    }
+
+    .bet-display {
+      background: #0a0a0a;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .bet-display .label {
+      color: #999;
+      font-size: 0.9rem;
+      margin-bottom: 5px;
+    }
+
+    .bet-display .value {
+      color: #00ff88;
+      font-size: 1.8rem;
+      font-weight: bold;
+    }
+
+    .mines-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .mines-btn {
+      padding: 10px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #ddd;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .mines-btn:hover {
+      border-color: #00ff88;
+      color: #00ff88;
+    }
+
+    .mines-btn.active {
+      background: #00ff88;
+      color: #000;
+      border-color: #00ff88;
+    }
+
+    .bet-presets {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .bet-btn {
+      padding: 10px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #ddd;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+    }
+
+    .bet-btn:hover {
+      border-color: #00ff88;
+      color: #00ff88;
+    }
+
+    .bet-btn.active {
+      background: #00ff88;
+      color: #000;
+      border-color: #00ff88;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #333;
+      color: #ddd;
+      font-size: 0.9rem;
+    }
+
+    .stat-row:last-child {
+      border-bottom: none;
+    }
+
+    .stat-row .label {
+      color: #999;
+    }
+
+    .stat-row .value {
+      color: #00ff88;
+      font-weight: bold;
+    }
+
+    .back-link {
+      display: inline-block;
+      color: #00ff88;
+      text-decoration: none;
+      margin-bottom: 20px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .back-link:hover {
+      color: #ff00aa;
+    }
+
+    .multiplier-display {
+      background: #0a0a0a;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      text-align: center;
+      border: 1px solid #00ff88;
+    }
+
+    .multiplier-display .label {
+      color: #999;
+      font-size: 0.9rem;
+      margin-bottom: 5px;
+    }
+
+    .multiplier-display .value {
+      color: #00ff88;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+      .game-content {
+        grid-template-columns: 1fr;
+      }
+
+      .game-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+      }
+
+      .mines-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header>
+    <div class="top-bar">
+      <div class="logo">
+        <h1>LOTTU <span>BET</span></h1>
+      </div>
+      <nav>
+        <a href="index.html">Esportes</a>
+        <a href="index.html">Ao Vivo</a>
+        <a href="index.html">Cassino</a>
+        <a href="index.html">Loteria</a>
+        <a href="index.html">Promoções</a>
+      </nav>
+      <div class="user-area">
+        <div id="userInfo" class="user-info" style="display: none;">
+          <img id="userPhoto" src="" alt="Foto" class="user-photo">
+          <div class="user-details">
+            <span id="userName" class="user-name"></span>
+            <span id="userEmail" class="user-email"></span>
+          </div>
+          <button id="logoutBtn" class="btn-logout">Sair</button>
+        </div>
+        <div id="loginButtons" class="login-buttons">
+          <button id="loginBtn" class="btn-login">Entrar</button>
+          <button class="btn-register">Cadastrar</button>
+        </div>
+        <button id="balanceBtn" class="balance-btn" onclick="goToDeposit()">R$ 0,00</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- GAME SECTION -->
+  <section class="game-container">
+    <a href="index.html" class="back-link">← Voltar</a>
+
+    <!-- HEADER DO JOGO -->
+    <div class="game-header">
+      <div class="game-title">
+        <h1><i class="fas fa-bomb"></i> Mines</h1>
+        <p style="color: #999; margin: 0; font-size: 0.9rem;">Clique nas células seguras e evite as minas!</p>
+      </div>
+      <div class="game-stats">
+        <div class="stat-item">
+          <div class="stat-label">Saldo</div>
+          <div class="stat-value" id="headerBalance">R$ 0,00</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Ganhos</div>
+          <div class="stat-value" id="totalWins">R$ 0,00</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Perdas</div>
+          <div class="stat-value" id="totalLosses">R$ 0,00</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTEÚDO DO JOGO -->
+    <div class="game-content">
+      <!-- BOARD DO JOGO -->
+      <div class="game-board">
+        <h2 style="color: #00ff88; margin-top: 0;">Clique nas Células Seguras</h2>
+        
+        <div class="mines-grid" id="minesGrid"></div>
+
+        <div class="game-controls">
+          <button class="btn-control primary" id="startBtn" onclick="startGame()">INICIAR JOGO</button>
+          <button class="btn-control" id="cashoutBtn" onclick="cashout()" disabled>SACAR</button>
+          <button class="btn-control" id="resetBtn" onclick="resetGame()">NOVO JOGO</button>
+        </div>
+
+        <div class="result-message" id="resultMessage"></div>
+      </div>
+
+      <!-- SIDEBAR -->
+      <div class="sidebar">
+        <!-- SEÇÃO DE APOSTA -->
+        <div class="section">
+          <h3><i class="fas fa-coins"></i> Aposta</h3>
+
+          <div class="bet-display">
+            <div class="label">Valor</div>
+            <div class="value" id="betDisplay">R$ 10,00</div>
+          </div>
+
+          <div class="bet-presets">
+            <button class="bet-btn" onclick="setBet(10)">R$ 10</button>
+            <button class="bet-btn" onclick="setBet(25)">R$ 25</button>
+            <button class="bet-btn" onclick="setBet(50)">R$ 50</button>
+            <button class="bet-btn" onclick="setBet(100)">R$ 100</button>
+            <button class="bet-btn" onclick="setBet(250)">R$ 250</button>
+            <button class="bet-btn" onclick="setBet(500)">R$ 500</button>
+          </div>
+
+          <input type="number" id="customBet" style="width: 100%; padding: 10px; background: #1a1a1a; border: 1px solid #333; border-radius: 6px; color: #ddd; margin-top: 10px;" placeholder="Ou digite um valor" min="1" max="10000" value="10">
+        </div>
+
+        <!-- SEÇÃO DE MINAS -->
+        <div class="section">
+          <h3><i class="fas fa-sliders-h"></i> Minas</h3>
+          <p style="color: #999; font-size: 0.9rem; margin-bottom: 10px;">Escolha quantas minas:</p>
+          <div class="mines-selector">
+            <button class="mines-btn" onclick="setMines(1)">1</button>
+            <button class="mines-btn" onclick="setMines(3)">3</button>
+            <button class="mines-btn" onclick="setMines(5)">5</button>
+            <button class="mines-btn" onclick="setMines(10)">10</button>
+            <button class="mines-btn" onclick="setMines(15)">15</button>
+            <button class="mines-btn active" onclick="setMines(20)">20</button>
+          </div>
+          <p style="color: #00ff88; font-size: 0.9rem; text-align: center; margin-top: 10px;">Minas Selecionadas: <strong id="minesCount">20</strong></p>
+        </div>
+
+        <!-- MULTIPLICADOR -->
+        <div class="section">
+          <h3><i class="fas fa-star"></i> Multiplicador</h3>
+          <div class="multiplier-display">
+            <div class="label">Ganho Potencial</div>
+            <div class="value" id="multiplierDisplay">1.00x</div>
+          </div>
+          <div class="stat-row">
+            <span class="label">Células Abertas:</span>
+            <span class="value" id="cellsOpened">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="label">Células Seguras:</span>
+            <span class="value" id="safeCells">25</span>
+          </div>
+        </div>
+
+        <!-- ESTATÍSTICAS -->
+        <div class="section">
+          <h3><i class="fas fa-chart-line"></i> Estatísticas</h3>
+          <div class="stat-row">
+            <span class="label">Total de Jogos:</span>
+            <span class="value" id="totalGames">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="label">Vitórias:</span>
+            <span class="value" id="totalWinsCount">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="label">Derrotas:</span>
+            <span class="value" id="totalLossesCount">0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Container para Google Sign-In -->
+  <div id="g_id_onload"
+       data-client_id="407511333676-7si5fdmpp3djo3rfhjd7147g6r5m3bad.apps.googleusercontent.com"
+       data-callback="handleCredentialResponse"
+       style="display: none;">
+  </div>
+
+  <script src="script.js"></script>
+  <script src="mines.js"></script>
+</body>
+</html>
